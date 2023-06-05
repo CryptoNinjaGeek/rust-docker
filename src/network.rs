@@ -43,6 +43,12 @@ impl std::fmt::Display for Network {
 
 #[derive(Serialize, Deserialize, Debug)]
 #[allow(non_snake_case)]
+pub struct NetworkConnect {
+    pub Container: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[allow(non_snake_case)]
 pub struct NetworkCreate {
     pub Name: String,
     pub CheckDuplicate: Option<bool>,

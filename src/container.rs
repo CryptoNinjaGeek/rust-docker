@@ -198,6 +198,9 @@ pub struct ContainerCreate {
     pub Labels: Option<HashMap<String, String>>,
     pub ExposedPorts: Option<HashMap<String, HashMap<i32, i32>>>,
     pub HostConfig: Option<HostConfigCreate>,
+    pub Cmd: Option<Vec<String>>,
+    pub Env: Option<Vec<String>>,
+    pub Volumes: Option<HashMap<String, String>>,
 }
 
 impl Clone for ContainerCreate {
@@ -207,6 +210,9 @@ impl Clone for ContainerCreate {
             Labels: self.Labels.clone(),
             ExposedPorts: self.ExposedPorts.clone(),
             HostConfig: self.HostConfig.clone(),
+            Cmd: self.Cmd.clone(),
+            Env: self.Env.clone(),
+            Volumes: self.Volumes.clone(),
         }
     }
 }

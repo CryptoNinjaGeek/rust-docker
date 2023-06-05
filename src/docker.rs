@@ -3,7 +3,8 @@ use std;
 use crate::container::{Container, ContainerCreate, ContainerInfo};
 use crate::filesystem::FilesystemChange;
 use crate::image::{Image, ImageStatus};
-use crate::network::{Network, NetworkCreate};
+use crate::network::{Network, NetworkCreate, NetworkConnect};
+use crate::volume::{Volume, VolumeCreate };
 use crate::process::{Process, Top};
 use crate::stats::Stats;
 use crate::system::SystemInfo;
@@ -129,6 +130,30 @@ impl Docker {
         }
     }
 
+    pub fn connect_container_to_network(&mut self,network_id_or_name: &str,connect: NetworkConnect )-> std::io::Result<String> {
+        let body = self.request(
+            Method::POST,
+            &format!("/networks/{}/connect", network_id_or_name),
+            serde_json::to_string(&connect).unwrap(),
+        );
+        let status: serde_json::Value = match serde_json::from_str(&body) {
+            Ok(status) => status,
+            Err(e) => {
+                return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                e.to_string(),
+                ));
+            }
+        };
+        match status.get("Id") {
+            Some(id) => Ok(id.as_str().unwrap().to_string()),
+                _ => Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                status.get("message").unwrap().to_string(),
+            )),
+        }
+    }
+
     pub fn create_network(&mut self, network: NetworkCreate) -> std::io::Result<String> {
         let body = self.request(
             Method::POST,
@@ -158,6 +183,63 @@ impl Docker {
         let body = self.request(
             Method::DELETE,
             &format!("/networks/{}", id_or_name),
+            "".to_string(),
+        );
+
+        match serde_json::from_str::<serde_json::Value>(&body) {
+            Ok(status) => Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                status["message"].to_string(),
+            )),
+            Err(_e) => Ok("".to_string()),
+        }
+    }
+
+    //
+    // Volumes
+    //
+
+    pub fn get_volumes(&mut self) -> std::io::Result<Vec<Volume>> {
+        let body = self.request(Method::GET, "/volumes", "".to_string());
+
+        match serde_json::from_str(&body) {
+            Ok(volumes) => Ok(volumes),
+            Err(e) => Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                e.to_string(),
+            )),
+        }
+    }
+
+    pub fn create_volume(&mut self, volume: VolumeCreate) -> std::io::Result<String> {
+        let body = self.request(
+            Method::POST,
+            "/volumes/create",
+            serde_json::to_string(&volume).unwrap(),
+        );
+
+        let status: serde_json::Value = match serde_json::from_str(&body) {
+            Ok(status) => status,
+            Err(e) => {
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::InvalidInput,
+                    e.to_string(),
+                ));
+            }
+        };
+        match status.get("Id") {
+            Some(id) => Ok(id.as_str().unwrap().to_string()),
+            _ => Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                status.get("message").unwrap().to_string(),
+            )),
+        }
+    }
+
+    pub fn delete_volume(&mut self, id_or_name: &str) -> std::io::Result<String> {
+        let body = self.request(
+            Method::DELETE,
+            &format!("/volumes/{}", id_or_name),
             "".to_string(),
         );
 
