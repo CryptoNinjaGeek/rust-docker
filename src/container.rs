@@ -184,7 +184,7 @@ impl Clone for RestartPolicy {
 }
 
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug,Default)]
 #[allow(non_snake_case)]
 pub struct HostConfigCreate {
     pub Binds: Option<Vec<String>>,

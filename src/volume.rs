@@ -25,9 +25,9 @@ pub struct Volume {
     pub CreatedAt: String,
     pub Labels: Option<HashMap<String, String>>,
     pub Scope: String,
-    pub ClusterVolume: ClusterVolume,
-    pub Options: DriverOpts,
-    pub UsageData: UsageData,
+    pub ClusterVolume: Option<ClusterVolume>,
+    pub Options: Option<DriverOpts>,
+    pub UsageData: Option<UsageData>,
 }
 
 impl Clone for Volume {
@@ -45,6 +45,21 @@ impl Clone for Volume {
         }
     }
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+#[allow(non_snake_case)]
+pub struct VolumeList {
+    pub Volumes: Vec<Volume>,
+}
+
+impl Clone for VolumeList {
+    fn clone(&self) -> Self {
+        VolumeList {
+            Volumes: self.Volumes.clone(),
+        }
+    }
+}
+
 
 impl Clone for ClusterVolume {
     fn clone(&self) -> Self {

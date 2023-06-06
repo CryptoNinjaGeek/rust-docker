@@ -4,7 +4,7 @@ use crate::container::{Container, ContainerCreate, ContainerInfo};
 use crate::filesystem::FilesystemChange;
 use crate::image::{Image, ImageStatus};
 use crate::network::{Network, NetworkCreate, NetworkConnect};
-use crate::volume::{Volume, VolumeCreate };
+use crate::volume::{Volume, VolumeCreate, VolumeList };
 use crate::process::{Process, Top};
 use crate::stats::Stats;
 use crate::system::SystemInfo;
@@ -79,6 +79,7 @@ impl Docker {
         return Ok(docker);
     }
 
+
     fn request_file(&self, method: Method, url: &str, file: Vec<u8>, content_type: &str) -> String {
         let req = Request::builder()
             .uri(match self.protocol {
@@ -96,7 +97,7 @@ impl Docker {
                     Protocol::UNIX => self.hyperlocal_client.as_ref().unwrap().request(req),
                     Protocol::TCP => self.hyper_client.as_ref().unwrap().request(req),
                 }
-                .and_then(|res| hyper::body::to_bytes(res.into_body()))
+                .and_then(|res| hyper::body::to_bytes(res.into_body() ))
                 .map(|body| String::from_utf8(body.expect("Body should not have an error").to_vec()).unwrap())
                 ),
             Err(_) => Runtime::new().unwrap().block_on(
@@ -130,28 +131,19 @@ impl Docker {
         }
     }
 
-    pub fn connect_container_to_network(&mut self,network_id_or_name: &str,connect: NetworkConnect )-> std::io::Result<String> {
+    pub fn connect_container_to_network(&mut self,network_id_or_name: String,connect: NetworkConnect )-> std::io::Result<bool> {
         let body = self.request(
             Method::POST,
             &format!("/networks/{}/connect", network_id_or_name),
             serde_json::to_string(&connect).unwrap(),
         );
-        let status: serde_json::Value = match serde_json::from_str(&body) {
-            Ok(status) => status,
-            Err(e) => {
-                return Err(std::io::Error::new(
+        if !body.is_empty() {
+            return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidInput,
-                e.to_string(),
-                ));
-            }
-        };
-        match status.get("Id") {
-            Some(id) => Ok(id.as_str().unwrap().to_string()),
-                _ => Err(std::io::Error::new(
-                std::io::ErrorKind::InvalidInput,
-                status.get("message").unwrap().to_string(),
-            )),
+                "Unable to connect container to network".to_string(),
+            ));
         }
+        Ok(true)
     }
 
     pub fn create_network(&mut self, network: NetworkCreate) -> std::io::Result<String> {
@@ -201,14 +193,15 @@ impl Docker {
 
     pub fn get_volumes(&mut self) -> std::io::Result<Vec<Volume>> {
         let body = self.request(Method::GET, "/volumes", "".to_string());
+        let volume_list : VolumeList = match serde_json::from_str(&body) {
+            Ok(volume_list) => volume_list,
+            Err(e) => {
+                let err = std::io::Error::new(std::io::ErrorKind::InvalidInput, e.to_string());
+                return Err(err);
+            }
+        };
 
-        match serde_json::from_str(&body) {
-            Ok(volumes) => Ok(volumes),
-            Err(e) => Err(std::io::Error::new(
-                std::io::ErrorKind::InvalidInput,
-                e.to_string(),
-            )),
-        }
+        Ok(volume_list.Volumes)
     }
 
     pub fn create_volume(&mut self, volume: VolumeCreate) -> std::io::Result<String> {
