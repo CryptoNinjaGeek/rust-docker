@@ -169,18 +169,41 @@ impl std::fmt::Display for PortBinding {
 
 #[derive(Serialize, Deserialize, Debug)]
 #[allow(non_snake_case)]
+pub struct RestartPolicy {
+    pub Name: String,
+    pub MaximumRetryCount: u64,
+}
+
+impl Clone for RestartPolicy {
+    fn clone(&self) -> Self {
+        RestartPolicy {
+            Name: self.Name.clone(),
+            MaximumRetryCount: self.MaximumRetryCount.clone(),
+        }
+    }
+}
+
+
+#[derive(Serialize, Deserialize, Debug)]
+#[allow(non_snake_case)]
 pub struct HostConfigCreate {
+    pub Binds: Option<Vec<String>>,
+    pub Links: Option<Vec<String>>,
     pub NetworkMode: Option<String>,
     pub PublishAllPorts: Option<bool>,
     pub PortBindings: Option<HashMap<String, Vec<PortBinding>>>,
+    pub RestartPolicy: Option<RestartPolicy>,
 }
 
 impl Clone for HostConfigCreate {
     fn clone(&self) -> Self {
         HostConfigCreate {
+            Binds: self.Binds.clone(),
+            Links: self.Links.clone(),
             NetworkMode: self.NetworkMode.clone(),
             PublishAllPorts: self.PublishAllPorts.clone(),
             PortBindings: self.PortBindings.clone(),
+            RestartPolicy: self.RestartPolicy.clone(),
         }
     }
 }

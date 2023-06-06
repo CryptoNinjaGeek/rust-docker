@@ -227,8 +227,8 @@ impl Docker {
                 ));
             }
         };
-        match status.get("Id") {
-            Some(id) => Ok(id.as_str().unwrap().to_string()),
+        match status.get("Name") {
+            Some(name) => Ok(name.as_str().unwrap().to_string()),
             _ => Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidInput,
                 status.get("message").unwrap().to_string(),
