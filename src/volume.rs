@@ -84,7 +84,7 @@ pub struct DriverOpts {
 #[allow(non_snake_case)]
 pub struct VolumeCreate {
     pub Name: String,
-    pub Driver: String,
+    pub Driver: Option<String>,
     pub DriverOpts: Option<DriverOpts>,
     pub Labels: Option<HashMap<String, String>>,
 }

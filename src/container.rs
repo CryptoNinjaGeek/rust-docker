@@ -200,7 +200,7 @@ pub struct ContainerCreate {
     pub HostConfig: Option<HostConfigCreate>,
     pub Cmd: Option<Vec<String>>,
     pub Env: Option<Vec<String>>,
-    pub Volumes: Option<HashMap<String, String>>,
+    pub Volumes: Option<HashMap<String, HashMap<String, String>>>,
 }
 
 impl Clone for ContainerCreate {
