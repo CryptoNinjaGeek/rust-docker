@@ -505,7 +505,8 @@ impl Docker {
                 "".to_string()
             )
         );
-        let fixed = body.replace("}{", "},{");
+        let text = body.replace('\n', "").replace('\r', "");
+        let fixed = text.replace("}{", "},{");
 
         let statuses: Vec<ImageStatus> = match serde_json::from_str(&fixed) {
             Ok(statuses) => statuses,
